@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Mulungushi University ICT251 IT Support Desk.">
+    <title>IT Support Desk | ICT251</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="./css/styles.css">
+</head>
+<body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <header class="site-header">
+        <div class="header-inner">
+            <a class="brand" href="#home">
+                <span class="brand-icon" aria-hidden="true">⌘</span>
+                <span>IT Support Desk<small>Mulungushi University</small></span>
+            </a>
+            <nav aria-label="Main navigation">
+                <a href="#home">Home</a>
+                <a href="#manage-records">Manage Records</a>
+                <a href="#about">About</a>
+            </nav>
+        </div>
+    </header>
+    <main id="main-content" tabindex="-1">
+        <section id="home" aria-labelledby="home-heading" tabindex="-1">
+            <div class="hero">
+                <div class="hero-content">
+                    <p class="eyebrow">MULUNGUSHI UNIVERSITY · ICT251</p>
+                    <h1 id="home-heading">IT Support Desk</h1>
+                    <p>Submit and track campus network, software, and hardware support requests.</p>
+                    <a class="button primary" href="#title">New request</a>
+                </div>
+                <div class="hero-art" aria-hidden="true"><span></span><i></i><b></b></div>
+            </div>
+            <dl class="summary" aria-label="Request totals">
+                <div><dt>Total requests</dt><dd id="total-count">—</dd></div>
+                <div><dt>Pending</dt><dd id="pending-count">—</dd></div>
+                <div><dt>In progress</dt><dd id="progress-count">—</dd></div>
+                <div><dt>Completed</dt><dd id="completed-count">—</dd></div>
+            </dl>
+        </section>
+        <section id="manage-records" aria-labelledby="manage-heading" tabindex="-1">
+            <h2 id="manage-heading">Manage support requests</h2>
+            <p id="message" role="status" aria-atomic="true"></p>
+            <div class="workspace">
+                <section class="panel form-panel" aria-labelledby="form-heading">
+                    <h3 id="form-heading">New request</h3>
+                    <form id="request-form" novalidate>
+                        <div>
+                            <label for="title">Request title</label>
+                            <input id="title" name="title" required minlength="3" maxlength="80" placeholder="e.g. Campus Wi-Fi unavailable" aria-describedby="title-hint">
+                            <small id="title-hint">3 to 80 characters</small>
+                        </div>
+                        <div>
+                            <label for="category">Category</label>
+                            <select id="category" name="category" required>
+                                <option value="">Select category</option>
+                                <option>Network</option><option>Software</option><option>Hardware</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="description">Description</label>
+                            <textarea id="description" name="description" required minlength="5" maxlength="300" rows="4" placeholder="Describe the problem" aria-describedby="description-hint"></textarea>
+                            <small id="description-hint">5 to 300 characters</small>
+                        </div>
+                        <div>
+                            <label for="status">Status</label>
+                            <select id="status" name="status" required>
+                                <option>Pending</option><option>In progress</option><option>Completed</option>
+                            </select>
+                        </div>
+                        <div class="form-actions">
+                            <button class="primary" type="submit" id="save-btn">Save request</button>
+                            <button type="button" id="cancel-edit-btn" hidden>Cancel edit</button>
+                            <button type="reset" id="clear-btn">Clear form</button>
+                        </div>
+                    </form>
+                </section>
+                <section class="panel records-panel" aria-labelledby="records-heading">
+                    <h3 id="records-heading">Request records</h3>
+                    <div class="toolbar">
+                        <div>
+                            <label for="search">Search by title</label>
+                            <input type="search" id="search" placeholder="Search requests">
+                        </div>
+                        <div>
+                            <label for="filter-status">Filter by status</label>
+                            <select id="filter-status">
+                                <option value="All">All statuses</option>
+                                <option>Pending</option><option>In progress</option><option>Completed</option>
+                            </select>
+                        </div>
+                    </div>
+                    <p id="record-count" role="status">Loading records…</p>
+                    <div class="table-container" role="region" aria-labelledby="records-heading" tabindex="0">
+                        <table role="table">
+                            <caption class="visually-hidden">IT support request records</caption>
+                            <thead role="rowgroup"><tr role="row">
+                                <th role="columnheader" scope="col">ID</th><th role="columnheader" scope="col">Title</th><th role="columnheader" scope="col">Category</th>
+                                <th role="columnheader" scope="col">Status</th><th role="columnheader" scope="col">Actions</th>
+                            </tr></thead>
+                            <tbody id="records-body" role="rowgroup"></tbody>
+                        </table>
+                    </div>
+                    <section id="record-details" aria-labelledby="details-heading" hidden>
+                        <h3 id="details-heading">Request details</h3>
+                        <dl id="details-content"></dl>
+                        <button type="button" id="close-details-btn">Close details</button>
+                    </section>
+                </section>
+            </div>
+        </section>
+        <section id="about" class="panel" aria-labelledby="about-heading" tabindex="-1">
+            <h2 id="about-heading">About this project</h2>
+            <p>IT Support Desk is an ICT251 Web Technologies project at Mulungushi University. Use New request to submit a support issue, then search, filter, view, edit, or delete requests. Records are shared through the backend and are available from other devices.</p>
+            <p>Student number 202500305</p>
+            <p>Backend resources: <a id="backend-guide-link">API guide</a> · <a id="backend-health-link">health check</a></p>
+        </section>
+    </main>
+    <footer>Mulungushi University · ICT251 Web Technologies</footer>
+    <noscript><p class="noscript">Enable JavaScript to manage support requests.</p></noscript>
+    <script type="module" src="./js/app.js"></script>
+</body>
+</html>

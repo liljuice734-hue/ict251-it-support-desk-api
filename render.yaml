@@ -17,3 +17,10 @@ services:
           property: connectionString
       - key: CLIENT_ORIGINS
         sync: false
+
+  - type: web
+    name: activity8-frontend
+    runtime: static
+    rootDir: activity8-frontend
+    buildCommand: echo "No frontend build step required"
+    staticPublishPath: .
