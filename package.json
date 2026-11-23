@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node --test"
+    "test": "node --test",
+    "dev": "pglite-server --db=./data/local-postgres --port=5433 --max-connections=10 --run \"node server.js\" --include-database-url"
   },
   "keywords": [],
   "author": "",
@@ -14,10 +15,15 @@
   "dependencies": {
     "cors": "^2.8.6",
     "dotenv": "^18.0.10",
-    "express": "^5.3.0"
+    "express": "^5.3.0",
+    "pg": "^8.23.1"
   },
   "private": true,
   "engines": {
-    "node": ">=24"
+    "node": ">=24 <25"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite-socket": "^0.2.13",
+    "pg-mem": "^3.0.14"
   }
 }

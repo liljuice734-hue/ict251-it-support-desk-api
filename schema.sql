@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS records (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     title TEXT NOT NULL,
     category TEXT NOT NULL,
     description TEXT NOT NULL,

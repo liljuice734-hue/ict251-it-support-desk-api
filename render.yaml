@@ -1,0 +1,19 @@
+databases:
+  - name: activity7-db
+    plan: free
+
+services:
+  - type: web
+    name: activity7-backend
+    runtime: node
+    plan: free
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: activity7-db
+          property: connectionString
+      - key: CLIENT_ORIGINS
+        sync: false

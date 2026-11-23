@@ -36,31 +36,41 @@ function readId(raw) {
 function createRecordsRouter(db) {
     const router = Router();
     const columns = "id, title, category, description, status";
-    const list = db.prepare("SELECT " + columns + " FROM records ORDER BY id");
-    const get = db.prepare("SELECT " + columns + " FROM records WHERE id = ?");
-    const create = db.prepare("INSERT INTO records (title, category, description, status) VALUES (?, ?, ?, ?) RETURNING " + columns);
-    const update = db.prepare("UPDATE records SET title = ?, category = ?, description = ?, status = ? WHERE id = ? RETURNING " + columns);
-    const remove = db.prepare("DELETE FROM records WHERE id = ?");
-
-    router.get("/", (req, res) => res.json(list.all()));
-
-    router.get("/:id", (req, res) => {
-        const record = get.get(readId(req.params.id));
-        return record ? res.json(record) : res.status(404).json({ message: "Record not found." });
+    router.get("/", async (req, res, next) => {
+        try {
+            const result = await db.query("SELECT " + columns + " FROM records ORDER BY id");
+            res.json(result.rows);
+        } catch (error) { next(error); }
     });
 
-    router.post("/", (req, res) => res.status(201).json(create.get(...readInput(req.body))));
-
-    router.put("/:id", (req, res) => {
-        const id = readId(req.params.id);
-        const record = update.get(...readInput(req.body), id);
-        return record ? res.json(record) : res.status(404).json({ message: "Record not found." });
+    router.get("/:id", async (req, res, next) => {
+        try {
+            const result = await db.query("SELECT " + columns + " FROM records WHERE id = $1", [readId(req.params.id)]);
+            return result.rowCount ? res.json(result.rows[0]) : res.status(404).json({ message: "Record not found." });
+        } catch (error) { next(error); }
     });
 
-    router.delete("/:id", (req, res) => {
-        const result = remove.run(readId(req.params.id));
-        if (result.changes === 0) return res.status(404).json({ message: "Record not found." });
-        return res.json({ message: "Record deleted." });
+    router.post("/", async (req, res, next) => {
+        try {
+            const result = await db.query("INSERT INTO records (title, category, description, status) VALUES ($1, $2, $3, $4) RETURNING " + columns, readInput(req.body));
+            res.status(201).json(result.rows[0]);
+        } catch (error) { next(error); }
+    });
+
+    router.put("/:id", async (req, res, next) => {
+        try {
+            const values = [...readInput(req.body), readId(req.params.id)];
+            const result = await db.query("UPDATE records SET title = $1, category = $2, description = $3, status = $4 WHERE id = $5 RETURNING " + columns, values);
+            return result.rowCount ? res.json(result.rows[0]) : res.status(404).json({ message: "Record not found." });
+        } catch (error) { next(error); }
+    });
+
+    router.delete("/:id", async (req, res, next) => {
+        try {
+            const result = await db.query("DELETE FROM records WHERE id = $1 RETURNING id", [readId(req.params.id)]);
+            if (result.rowCount === 0) return res.status(404).json({ message: "Record not found." });
+            return res.json({ message: "Record deleted." });
+        } catch (error) { next(error); }
     });
     return router;
 }

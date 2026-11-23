@@ -1,20 +1,33 @@
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
+const { readFileSync } = require("node:fs");
 const { join } = require("node:path");
 const { openDatabase } = require("./db");
 const { createRecordsRouter } = require("./routes/records");
 
+const guide = readFileSync(join(__dirname, "guide.html"), "utf8");
+
+function escapeHtml(value) {
+    return value.replace(/[&<>"']/g, character => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    })[character]);
+}
+
 function createApp(db, origins = []) {
     const app = express();
     app.disable("x-powered-by");
+    app.set("trust proxy", 1);
     app.use(cors({ origin: origins }));
     app.use(express.json({ limit: "16kb" }));
 
-    app.get("/", (req, res) => res.sendFile(join(__dirname, "guide.html")));
-    app.get("/health", (req, res) => {
+    app.get("/", (req, res) => {
+        const baseUrl = escapeHtml(req.protocol + "://" + req.get("host"));
+        res.type("html").send(guide.replaceAll("{{BASE_URL}}", baseUrl));
+    });
+    app.get("/health", async (req, res) => {
         try {
-            db.prepare("SELECT COUNT(*) FROM records").get();
+            await db.query("SELECT COUNT(*) FROM records");
             res.json({ status: "ok", database: "connected" });
         } catch (error) {
             console.error("Database health check failed:", error);
@@ -41,13 +54,17 @@ if (require.main === module) {
     const port = Number(process.env.PORT || 3000);
     const origins = (process.env.CLIENT_ORIGINS || "http://127.0.0.1:8000,http://localhost:8000")
         .split(",").map(value => value.trim()).filter(Boolean);
-    const db = openDatabase(process.env.DATABASE_PATH || join(__dirname, "data", "records.sqlite"));
-    const server = createApp(db, origins).listen(port, "0.0.0.0", () => {
-        console.log("IT Support Desk API listening on port " + server.address().port);
+    openDatabase().then(db => {
+        const server = createApp(db, origins).listen(port, "0.0.0.0", () => {
+            console.log("IT Support Desk API listening on port " + server.address().port);
+        });
+        for (const signal of ["SIGINT", "SIGTERM"]) {
+            process.once(signal, () => server.close(() => db.end()));
+        }
+    }).catch(error => {
+        console.error("Database startup failed:", error);
+        process.exitCode = 1;
     });
-    for (const signal of ["SIGINT", "SIGTERM"]) {
-        process.once(signal, () => server.close(() => db.close()));
-    }
 }
 
 module.exports = { createApp };

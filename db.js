@@ -1,25 +1,42 @@
-const { DatabaseSync } = require("node:sqlite");
-const { mkdirSync, readFileSync } = require("node:fs");
-const { dirname, join, resolve } = require("node:path");
+const { readFileSync } = require("node:fs");
+const { join } = require("node:path");
+const { Pool } = require("pg");
 
-function openDatabase(databasePath) {
-    const filename = databasePath === ":memory:" ? databasePath : resolve(databasePath);
-    if (filename !== ":memory:") mkdirSync(dirname(filename), { recursive: true });
+const schema = readFileSync(join(__dirname, "schema.sql"), "utf8");
+const seed = readFileSync(join(__dirname, "seed.sql"), "utf8");
 
-    const db = new DatabaseSync(filename);
+async function initialiseDatabase(pool) {
+    const client = await pool.connect();
     try {
-        db.exec("PRAGMA busy_timeout = 5000; BEGIN IMMEDIATE");
-        db.exec(readFileSync(join(__dirname, "schema.sql"), "utf8"));
-        const marker = db.prepare("INSERT OR IGNORE INTO app_metadata (key) VALUES (?)").run("seed-v1");
-        if (marker.changes === 1 && db.prepare("SELECT 1 FROM records LIMIT 1").get() === undefined) {
-            db.exec(readFileSync(join(__dirname, "seed.sql"), "utf8"));
+        await client.query("BEGIN");
+        await client.query(schema);
+        const marker = await client.query(
+            "SELECT key FROM app_metadata WHERE key = $1",
+            ["seed-v1"]
+        );
+        if (marker.rowCount === 0) {
+            await client.query("INSERT INTO app_metadata (key) VALUES ($1)", ["seed-v1"]);
+            await client.query(seed);
         }
-        db.exec("COMMIT");
-        return db;
+        await client.query("COMMIT");
     } catch (error) {
-        db.close();
+        await client.query("ROLLBACK");
+        throw error;
+    } finally {
+        client.release();
+    }
+}
+
+async function openDatabase(connectionString = process.env.DATABASE_URL) {
+    if (!connectionString) throw new Error("DATABASE_URL must be set to a PostgreSQL connection URL.");
+    const pool = new Pool({ connectionString });
+    try {
+        await initialiseDatabase(pool);
+        return pool;
+    } catch (error) {
+        await pool.end();
         throw error;
     }
 }
 
-module.exports = { openDatabase };
+module.exports = { initialiseDatabase, openDatabase };

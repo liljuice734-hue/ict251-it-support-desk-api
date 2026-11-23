@@ -25,8 +25,8 @@
         <p>Student number 202500305</p>
     </header>
     <main>
-        <p>This API stores fictional campus IT support requests in SQLite. A hosted service may take time to respond after being idle.</p>
-        <p>API base URL <a id="base-url" href="/">this site’s origin</a> · <a href="/health">Health check</a> · <a href="/api/records">Browse records</a></p>
+        <p>This API stores fictional campus IT support requests in PostgreSQL, so records survive a service restart. A hosted service may take time to respond after being idle.</p>
+        <p>Live API base URL <a id="base-url" href="{{BASE_URL}}">{{BASE_URL}}</a> · <a href="/health">Health check</a> · <a href="/api/records">Browse records</a></p>
         <section>
             <h2>Routes</h2>
             <table>
@@ -44,7 +44,7 @@
         </section>
         <section>
             <h2>POST and PUT body</h2>
-            <p>Send all four editable values as strings using <code>Content-Type: application/json</code>. The service generates the positive integer ID and trims input before validation.</p>
+            <p>Use this JSON body for <code>POST /api/records</code>. For <code>PUT /api/records/:id</code>, send the same four fields; the record ID goes in the URL, not the body. Set <code>Content-Type: application/json</code>. The service generates the positive integer ID, ignores any ID you send, and trims input before validation.</p>
             <ul>
                 <li>Title: 3–80 characters</li>
                 <li>Category: 2–40 characters (for example, Network, Software, or Hardware)</li>
@@ -63,8 +63,5 @@
             <p>Errors return a JSON object with a <code>message</code> field. Expect 400 for invalid input or malformed JSON, 404 for unknown routes or records, 413 for oversized bodies, 415 for unsupported encoding, 500 for unexpected errors, and 503 if the health check cannot reach the database.</p>
         </section>
     </main>
-    <script>
-        document.getElementById("base-url").textContent = location.origin;
-    </script>
 </body>
 </html>
